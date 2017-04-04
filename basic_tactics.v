@@ -72,3 +72,25 @@ Proof.
   (* I already have the next premise. *)
   move => _; apply p.
 Qed.
+
+End simpleEx.
+
+Section haveEx.
+
+(* Hypotheses for Lemma Q0 *)
+Variables P Q R T : Prop.
+Hypothesis H : P -> Q.
+Hypothesis H0 : Q -> R.
+Hypothesis H1 : (P -> R) -> T -> Q.
+Hypothesis H2 : (P -> R) -> T.
+
+Lemma Q0 : Q.
+Proof.
+  have p_to_r: P -> R.
+     move => p; apply H0; apply H; apply p.
+  apply H1.
+    - apply p_to_r.
+    - apply H2; apply p_to_r.
+Qed.
+
+End haveEx.
