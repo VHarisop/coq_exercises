@@ -94,3 +94,34 @@ Proof.
 Qed.
 
 End haveEx.
+
+(* Boolean propositions, mostly proofs by elimination
+   over cases. *)
+
+Section bool_prop.
+
+Check (forall (a b : bool), a -> b).
+Notation "x 'is_true'" := (is_true x) (at level 8).
+Check (forall (a b : bool), a is_true ->  b is_true).
+
+Lemma Andb_idl (a b : bool) : (b is_true -> a is_true ) -> a && b = b.
+Proof.
+  case: a; case: b; rewrite //=.
+  by move => H; apply H.
+Qed.
+
+Lemma Andb_idr (a b :bool) : (a is_true-> b is_true) -> a && b = a.
+Proof.
+  case: a; case: b; rewrite //=.
+  by move => H; apply H.
+Qed.
+
+Lemma Andb_id2l (a b c : bool) : (a -> b = c) -> a && b = a && c.
+Proof.
+  case: a; case: b; rewrite !//=.
+  by move => ppt; apply ppt.
+  by move => ppf; apply ppf.
+Qed.
+
+End bool_prop.
+
