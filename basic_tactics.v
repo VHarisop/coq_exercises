@@ -116,6 +116,14 @@ Proof.
   by move => H; apply H.
 Qed.
 
+(* Note that this is symmetric with Andb_idl -> use andbC *)
+Lemma Andb_idr_smart (a b : bool) : (a is_true -> b is_true) -> a && b = a.
+Proof.
+  move => a_to_b.
+  rewrite andbC.
+  apply Andb_idl; apply a_to_b.
+Qed.
+
 Lemma Andb_id2l (a b c : bool) : (a -> b = c) -> a && b = a && c.
 Proof.
   case: a; case: b; rewrite !//=.
