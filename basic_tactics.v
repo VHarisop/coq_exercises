@@ -200,4 +200,18 @@ Proof.
     - apply concat_r_has_more.
 Qed.
 
+(* Prove that the reverse has at least two if and only if
+   the original has at leas two *)
+Lemma rev_least (T: Type) (l: seq T):
+  at_least_two l = at_least_two (rev l).
+Proof.
+  have at_least_two_rcons (A: Type) a b (ql: seq A) :
+    at_least_two (rcons (rcons ql a) b).
+    move: ql; case => // a1. case; rewrite //=.
+  case: l => [// | h1 l] //=.
+  case: l => [// | h2 l] //=.
+    rewrite !rev_cons.
+    by rewrite at_least_two_rcons.
+Qed.
+
 End sequences.
