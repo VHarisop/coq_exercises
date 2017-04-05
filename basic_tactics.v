@@ -131,5 +131,73 @@ Proof.
   by move => ppf; apply ppf.
 Qed.
 
+Lemma andbA : forall x y z, andb x (andb y z) = andb (andb x y) z.
+Proof.
+  move => x y z.
+  rewrite /andb.
+  case: x; rewrite //=.
+Qed.
+
+(* Prove that logical AND of an OR splits. *)
+Lemma andb_orr :
+  forall x y z, andb x (orb y z) = orb (andb x y) (andb x z).
+Proof.
+  move => x y z.
+  rewrite /andb.
+  case: x; rewrite //=.
+Qed.
+
+(* a -> b == (~a) OR b *)
+Lemma impbE : forall x y, implb x y = orb (negb x) y.
+Proof.
+  move => x y.
+  by case: x.
+Qed.
+
+Lemma xorbE : forall x y, xorb x y = andb (orb x y) (negb (andb x y)).
+Proof.
+  move => x y.
+  by case: x.
+Qed.
+
 End bool_prop.
 
+(* Definitions and lemmas about sequences *)
+Section sequences.
+
+Definition at_least_two (T: Type) (x : seq T) :=
+	if x is h :: t :: _ then true else false.
+
+Definition exactly_two (T: Type) (x : seq T) :=
+	if x is h :: t :: [ :: ] then true else false.
+
+(* == 2 -> >= 2 *)
+Lemma two_is_enough (T: Type) (x: seq T): exactly_two x -> at_least_two x.
+Proof.
+  case: x => [// | a Rest].
+  by case: Rest => [// | b RRest].
+Qed.
+
+(* If one of two lists has at least 2 elements, their concatenation
+   will also have at least two elements *)
+Lemma concat_has_more (T: Type) (x: seq T) (y: seq T):
+  (at_least_two x || at_least_two y) -> at_least_two (x ++ y).
+Proof.
+  (* Prove the left side *)
+  have concat_l_has_more (z w : seq T): at_least_two z -> at_least_two (z ++ w).
+    (* Cases on x *)
+    rewrite {1}/at_least_two.
+    by case: z => [// | _T L]; case: L.
+  (* Prove the right side *)
+  have concat_r_has_more (z w : seq T): at_least_two w -> at_least_two (z ++ w).
+    move : z. case.
+      - by [].
+      - move => a; case; rewrite //=.
+      - move : w; case; rewrite //=.
+  (* Use left and right cases to prove the whole thing. *)
+  case/orP.
+    - apply concat_l_has_more.
+    - apply concat_r_has_more.
+Qed.
+
+End sequences.
