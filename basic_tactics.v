@@ -215,3 +215,118 @@ Proof.
 Qed.
 
 End sequences.
+
+
+(* Section playing around with applying and proving views *)
+Section views.
+
+Goal forall (P Q : Prop), (P <-> Q) -> P -> Q.
+Proof.
+  move => P Q p_equiv_q.
+  by move/iffLR: p_equiv_q => p_equiv_q.
+Qed.
+
+Goal forall (P : nat -> Prop) (Q : Prop),
+     (P 0 -> Q)
+  -> (forall n, P n.+1 -> P n)
+  -> P 4 -> Q.
+Proof.
+  move => P Q.
+  move => p0q pSn_impl_n p4.
+  move/pSn_impl_n: p4 => p3.
+  move/pSn_impl_n: p3 => p2.
+  move/pSn_impl_n: p2 => p1.
+  move/pSn_impl_n: p1 => p0; apply p0q; apply p0.
+Qed.
+
+(* Using case/orP with b1 || b2 as hypothesis in goal *)
+Goal forall (b b1 b2 : bool), (b1 -> b) -> (b2 -> b) -> b1 || b2 -> b.
+Proof. (* No case analysis on b, b1, b2 allowed *)
+  move => b b1 b2.
+  move => b1_b b2_b.
+  (* Goal left: b1 || b2 -> b.
+     Using case/orP reduces to two trivial goals:
+       - b1 -> b
+       - b2 -> b *)
+  by case/orP.
+Qed.
+
+(* Using specialization in move: move => /(_ x). *)
+Goal forall (Q : nat -> Prop) (p1 p2 : nat -> bool) x,
+  ((forall y, Q y -> p1 y /\ p2 y) /\ Q x) -> p1 x && p2 x.
+Proof.
+  move => Q p1 p2 x H.
+  case: H.
+    (* Specialize [Qy -> p1 y /\ py 2] by putting x as y *)
+    move => /(_ x).
+    move => QH Qx.
+    apply /andP; apply QH; apply Qx.
+Qed.
+
+(* Same goal with above, using orP. *)
+Goal forall (Q : nat -> Prop) (p1 p2 : nat -> bool) x,
+  ((forall y, Q y -> p1 y \/ p2 y) /\ Q x) -> p1 x || p2 x.
+Proof.
+  move => Q p1 p2 x H.
+  case: H.
+    move => /(_ x).
+    move => QH Qx.
+    apply/orP.
+    apply QH; apply Qx.
+Qed.
+
+End views.
+
+Section no_xxxP_lemmas.
+
+(* Prove identity without other xxxP lemmas *)
+Lemma myidP: forall (b : bool), reflect b b.
+Proof.
+  move => b.
+  case: b.
+  (* ReflectT: P -> reflect P true
+     ReflectF: ~P -> reflect P false *)
+    - by apply ReflectT.
+    - by apply ReflectF.
+Qed.
+
+(* Symmetric with idP *)
+Lemma mynegP: forall (b : bool), reflect (~ b) (~~ b).
+Proof.
+  move => b //=.
+  case: b.
+    - by apply ReflectF.
+    - by apply ReflectT.
+Qed.
+
+Lemma myandP: forall (b1 b2 : bool), reflect (b1 /\ b2) (b1 && b2).
+Proof.
+  move => b1 b2.
+  case: b1; rewrite //=.
+    case b2; rewrite //=.
+    (* reflect (true /\ true) true *)
+    - by apply ReflectT.
+    (* reflect (true /\ false) false *)
+    - apply ReflectF. by move => h; case: h.
+    (* reflect (false /\ b2) false *)
+    - apply ReflectF. by move => h; case: h.
+Qed.
+
+(* Logical equivalence stated by booleans *)
+Lemma myiffP:
+  forall (P Q : Prop) (b : bool),
+    reflect P b -> (P -> Q) -> (Q -> P) -> reflect Q b. 
+Proof.
+  move => P Q b.
+  move => Pb PQ QP.
+  move: Pb.
+    - case: b.
+      (* Following parts are tricky! *)
+      * move => h. case: h. move/PQ => h. apply/ReflectT; apply h.
+      * move => h. apply/ReflectF. move/QP => p. apply h; apply p.
+      * move => h. case: h.
+        - move/PQ => p. apply ReflectT; apply p.
+        - move => NP. apply/ReflectF. move/QP => p. apply NP. apply p.
+Qed.
+
+End no_xxxP_lemmas.
