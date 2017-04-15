@@ -330,3 +330,30 @@ Proof.
 Qed.
 
 End no_xxxP_lemmas.
+
+Section nats.
+
+Lemma snat_ind : forall (P : nat -> Prop),
+  (forall x, (forall y, y < x -> P y) -> P x)
+  -> forall x, P x.
+Proof.
+  (* Hint: strengthen P x into (forall y, y <= x -> P x) and then
+   *       perform the induction on x. *)
+  move => P Px x.
+  (* The following line works as explained here:
+     - the ":" tactic works left to right, so at first,
+       (leqnn x) is added to the goal stack
+     - the second move generalizes the first occurence of "x" in
+       (leqnn x) to another nat, x0. *)
+  move: {-2}x (leqnn x).
+  elim: x.
+    - move => x. rewrite leqn0. move/eqP => x_eq_0.
+      rewrite x_eq_0. by apply: Px.
+    - move => n IHn x. rewrite leq_eqVlt => /orP.
+      case.
+        + move => x_eq_sn. rewrite (eqP x_eq_sn). apply Px.
+          move => y. apply IHn.
+        + move => x_lt_sn. apply IHn. apply x_lt_sn.
+Qed.
+
+End nats.
