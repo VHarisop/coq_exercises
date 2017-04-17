@@ -43,7 +43,7 @@ Qed.
 
 (* Prove this by induction. *)
 Lemma size_iota_sumn l : sumn (map (addn 1) l) = size l + sumn l.
-Proof. 
+Proof.
   elim: l => //= x xs IHx.
   rewrite !addSn. rewrite [x + _]addnC IHx. rewrite [in RHS]addnA add0n.
   by rewrite [x + _]addnC.
@@ -70,4 +70,51 @@ Proof.
   - case: n => //= n.
     set q := n.+1.
     by rewrite muln1 leq_pmull.
+Qed.
+
+(* Advanced exercise. *)
+Lemma ex5_dvdn : forall m n k, k > 0 -> (m ^ k %| n ^ k) -> (m %| n).
+Proof.
+  move => m n k k_pos dv_mn_k.
+  (* Without loss of generality n is positive, since any number divides 0 *)
+  wlog n_gt0 : / (n > 0).
+    - case: n {dv_mn_k}.
+      + by [].
+      + move => n0. rewrite ltn0Sn //=. move => m_div_n0S. by apply m_div_n0S.
+  (* Given d := gcdn m n, n can be written as n' * d and m as m' * d *)
+  set d := gcdn m n.
+  (* IMPORTANT: Use 'have' to assert the existence of n', s.t.
+     n = n' * (gcdn m n) *)
+  have /dvdnP[n' def_n]: (d %| n).
+  - by apply: dvdn_gcdr.
+  have /dvdnP[m' def_m]: (d %| m).
+  - by apply: dvdn_gcdl.
+  (* We also have d > 0 *)
+  have : d > 0.
+  - by rewrite /d gcdn_gt0 n_gt0 orb_idl.
+  (* We can now refine our assumption to m' ^ k %| n' ^ k
+   since for b positive, a * b %| c * b -> a %| c     *)
+  move => d_gt0.
+  have {dv_mn_k} dv_mn_k: m' ^ k %| n' ^ k.
+  - move: dv_mn_k. rewrite !def_m !def_n. rewrite !expnMn.
+    rewrite dvdn_pmul2r.
+      + by [].
+      + rewrite expn_gt0 d_gt0 //.
+  (* We can also prove that (m' ^ k) and (n' ^ k) are coprime since
+     the gcdn of m' and n' is 1, or equivalently (gcdn m' n') * d = d *)
+  have cop_mnk: coprime (m' ^ k) (n' ^ k).
+    + rewrite coprime_expl //.
+    + rewrite coprime_expr //.
+    + rewrite /coprime.
+    + have: (gcdn m' n') * d == d.
+      - rewrite muln_gcdl. rewrite -def_n -def_m. by rewrite /d.
+    + rewrite -eqn_div // divnn d_gt0 //=.
+  (* From this coprimality and the refined hypothesis follows that
+     m' ^ k = 1 = gcdn (m' ^ k) (n' ^ k). Hint: gcdn a (a %% b) = gcdn a b *)
+  have : m' ^ k == 1.
+    + rewrite -(eqP cop_mnk). by rewrite -gcdn_modr (eqP dv_mn_k) gcdn0.
+    + rewrite -(exp1n k) eqn_exp2r. move => /eqP m_eq_1.
+      rewrite def_m m_eq_1 mul1n def_n.
+      by rewrite dvdn_mull.
+      apply k_pos.
 Qed.
