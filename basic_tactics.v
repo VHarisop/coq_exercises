@@ -356,4 +356,33 @@ Proof.
         + move => x_lt_sn. apply IHn. apply x_lt_sn.
 Qed.
 
+(* Variation of induction on naturals *)
+Lemma tut_odd_ind : forall (P : nat -> Prop),
+  P 0 -> P 1 -> (forall x, P x  -> P x.+2)
+  -> forall x, P x.
+Proof.
+  move => P P0 P1 Pind.
+  elim/snat_ind.
+  - move => x. case: x => //= x.
+  - case: x.
+    + move => _; apply P1.
+    + move => x Hind. by apply Pind; apply Hind.
+Qed.
+
+
+(* Variation of strong induction on naturals *)
+Lemma tut_nat_ind2: forall (P : nat -> Prop),
+  P 0 -> P 1 -> (forall p, P p -> P p.+1 -> P p.+2)
+  -> forall n, P n.
+Proof.
+  move => P P0 P1 ind.
+  elim/snat_ind.
+  - move => x. case: x => //= x.
+  - case: x.
+    + move => _; apply P1.
+    + move => x HInd. by apply ind; apply HInd.
+Qed.
+
+End nats.
+
 End nats.
