@@ -115,3 +115,36 @@ Proof.
       rewrite orb_idr // => le_mn2.
       rewrite (leq_trans (_ : _ <= n2)) //.
 Qed.
+
+
+(* Proof for totality of naturals. *)
+Lemma tuto_ltngtP: forall m n, tut_compare_nat m n (m < n) (n < m) (m == n).
+Proof.
+  (* Equal is inequality on both sides *)
+  have eq_total m n: (m == n) = (m <= n) && (n <= m).
+    - by rewrite eqn_leq.
+  (* Less than implies not-greater-equal *)
+  have neqlt m n: ~~ (n < m) = (m <= n).
+    - by rewrite ltnNge negbK.
+  (* Main Proof *)
+  move => m n.
+  (* use case hyp_name: (hypothesis) to explicitly refer to hypothesis later. *)
+  case m_lt_n : (m < n).
+    (* simplify (m < n) = true to (m < n) *)
+    - move: {m_lt_n} (idP m_lt_n) => mlt_n.
+      rewrite [m == n]ltn_eqF. rewrite ltnNge ltnW /=; last first. exact mlt_n.
+      by constructor. exact mlt_n.
+    case n_lt_m: (n < m).
+      - move: {m_lt_n n_lt_m} (idP n_lt_m) => nlt_m.
+        rewrite tut_eqb. rewrite [n == m]ltn_eqF //=. by constructor.
+    move: {n_lt_m m_lt_n} (negbT n_lt_m) (negbT m_lt_n) => H1 H2.
+    case m_eq_n: (m == n).
+      - move: {m_eq_n} (idP m_eq_n) => m_eq_n.
+        by constructor.
+      - (* This case is proven by absurdity *)
+        move: H1 H2 m_eq_n.
+        rewrite !neqlt => h1 h2.
+        move/negbT.
+        rewrite eq_total.
+        rewrite h1 h2 //.
+Qed.
