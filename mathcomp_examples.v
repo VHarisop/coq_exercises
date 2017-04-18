@@ -117,6 +117,13 @@ Proof.
 Qed.
 
 
+(* 3-way split based on order of numbers *)
+Inductive tut_compare_nat (m n: nat) : bool -> bool -> bool -> Set :=
+    Ltn : m < n -> tut_compare_nat m n true false false
+  | Gtn : n < m -> tut_compare_nat m n false true false
+  | Eql : m == n -> tut_compare_nat m n false false true.
+
+
 (* Proof for totality of naturals. *)
 Lemma tuto_ltngtP: forall m n, tut_compare_nat m n (m < n) (n < m) (m == n).
 Proof.
